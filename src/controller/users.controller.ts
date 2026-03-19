@@ -1,8 +1,14 @@
 import { Request, Response } from "express";
-import { LoginUserType, RegisterUserType } from "../types/users.types";
+import {
+  LoginUserType,
+  RegisterUserType,
+  UserResponse,
+  UserSuccessResponse,
+} from "../types/users.types";
 import bcrypt from "bcrypt";
 import { LoginUserModel, RegisterUserModel } from "../models/users.model";
 import { generateToken } from "../utils/utils";
+import { toUserResponse } from "../utils/destructuring";
 
 export const RegisterUserController = async (
   req: Request<{}, {}, RegisterUserType>,
@@ -10,7 +16,7 @@ export const RegisterUserController = async (
 ) => {
   // TODO - Implement user registration logic
   // 1. Validate input data
-  let { email, password, name, role } = req.body;
+  let { email, password, name, role, addresses } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -22,9 +28,9 @@ export const RegisterUserController = async (
     email,
     password,
     name,
-    role: role || "user", // Default role, can be modified as needed
+    role: role || "user",
+    addresses: addresses || [],
   });
-  console.log("Stored user data:", stored);
   if ("error" in stored)
     return res
       .status(500)
@@ -36,8 +42,8 @@ export const RegisterUserController = async (
     role: stored.role,
   }); // Implement generateToken to create JWT
 
-  res.status(201).json({ ...stored, token });
-};
+  res.status(201).json({ ...toUserResponse(stored), token });
+};;
 
 export const LoginUser = async (
   req: Request<{}, {}, LoginUserType>,
@@ -46,7 +52,6 @@ export const LoginUser = async (
   const user = await LoginUserModel(req.body.email);
   if (!user)
     return res.status(401).json({ message: "Invalid email or password" });
-  console.log({ pass: req.body.password, pass1: user.password });
   const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
   if (!isPasswordValid)
     return res.status(401).json({ message: "Invalid email or password" });
@@ -57,6 +62,5 @@ export const LoginUser = async (
     role: user.role,
   });
   // remove password from user object before sending response
-  const { password, ...userWithoutPassword } = user;
-  res.status(200).json({ ...userWithoutPassword, token });
+  res.status(200).json({ ...toUserResponse(user), token });
 };

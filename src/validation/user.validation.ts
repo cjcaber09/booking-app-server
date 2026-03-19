@@ -15,6 +15,17 @@ const registerSchema = joi.object({
     .messages({
       "any.only": "Confirm password must match password",
     }),
+  addresses: joi.array().items(
+    joi
+      .object({
+        street: joi.string().required(),
+        city: joi.string().required(),
+        state: joi.string().required(),
+        zip_code: joi.string().required(),
+        country: joi.string().required(),
+      })
+      .default([]),
+  ),
 });
 
 const loginSchema = joi.object({
