@@ -17,7 +17,6 @@ export const authenticateToken = async (
   try {
     const decoded: any = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
-    console.log("Decoded token:", decoded);
     // Fetch user from database
     const result = await pool.query(
       "SELECT id, email FROM users WHERE id = $1",
@@ -28,7 +27,6 @@ export const authenticateToken = async (
     }
     next();
   } catch (err) {
-    console.error("Token verification error:", err);
-    res.status(403).json({ message: "Invalid access token" });
+    return res.status(403).json({ message: "Invalid access token" });
   }
 };

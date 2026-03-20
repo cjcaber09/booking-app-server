@@ -9,14 +9,15 @@ import bcrypt from "bcrypt";
 import { LoginUserModel, RegisterUserModel } from "../models/users.model";
 import { generateToken } from "../utils/utils";
 import { toUserResponse } from "../utils/destructuring";
+import { BodyRequest } from "../types/express";
 
 export const RegisterUserController = async (
-  req: Request<{}, {}, RegisterUserType>,
+  req: BodyRequest<RegisterUserType>,
   res: Response,
 ) => {
   // TODO - Implement user registration logic
   // 1. Validate input data
-  let { email, password, name, role, addresses } = req.body;
+  let { email, password, name, role, addresses, contact_info } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -30,6 +31,7 @@ export const RegisterUserController = async (
     name,
     role: role || "user",
     addresses: addresses || [],
+    contact_info: contact_info || { phone: "" },
   });
   if ("error" in stored)
     return res
@@ -42,11 +44,11 @@ export const RegisterUserController = async (
     role: stored.role,
   }); // Implement generateToken to create JWT
 
-  res.status(201).json({ ...toUserResponse(stored), token });
+  return res.status(201).json({ ...toUserResponse(stored), token });
 };;
 
 export const LoginUser = async (
-  req: Request<{}, {}, LoginUserType>,
+  req: BodyRequest<LoginUserType>,
   res: Response,
 ) => {
   const user = await LoginUserModel(req.body.email);
@@ -62,5 +64,5 @@ export const LoginUser = async (
     role: user.role,
   });
   // remove password from user object before sending response
-  res.status(200).json({ ...toUserResponse(user), token });
+  return res.status(200).json({ ...toUserResponse(user), token });
 };

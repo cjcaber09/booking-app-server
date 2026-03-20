@@ -1,5 +1,6 @@
 import { ObjectSchema } from "joi";
-import validation from "../validation/user.validation";
+import userValidation from "../validation/user.validation";
+import roomValidation from "../validation/room.validation";
 import { Request, Response, NextFunction } from "express";
 
 const validate = (schema: ObjectSchema) => {
@@ -14,5 +15,6 @@ const validate = (schema: ObjectSchema) => {
   };
 };
 
-export const validateRegister = validate(validation.registerSchema);
-export const validateLogin = validate(validation.loginSchema);
+export const validateRegister = validate(userValidation.registerSchema);
+export const validateLogin = validate(userValidation.loginSchema);
+export const validateRoomSchema = validate(roomValidation.createRoomSchema);

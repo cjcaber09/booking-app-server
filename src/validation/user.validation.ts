@@ -15,6 +15,7 @@ const registerSchema = joi.object({
     .messages({
       "any.only": "Confirm password must match password",
     }),
+  role: joi.string().valid("user", "admin").default("user"),
   addresses: joi.array().items(
     joi
       .object({
@@ -26,6 +27,12 @@ const registerSchema = joi.object({
       })
       .default([]),
   ),
+  contact_info: joi
+    .object({
+      phone: joi.string().required(),
+      alternate_email: joi.string().email(),
+    })
+    .default({ phone: "" }),
 });
 
 const loginSchema = joi.object({

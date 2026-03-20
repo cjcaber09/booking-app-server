@@ -4,6 +4,7 @@ import usersRouter from "./router/users.router";
 import pool from "./config/db";
 import cors from "cors";
 import bookingsRouter from "./router/bookings.routes";
+import roomsRouter from "./router/rooms.routes";
 dotenv.config();
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(cors());
 const prefix = "/api/v1";
 app.use(`${prefix}/users`, usersRouter);
 app.use(`${prefix}/bookings`, bookingsRouter);
+app.use(`${prefix}/rooms`, roomsRouter);
 
 const PORT = process.env.PORT || 3000;
 
