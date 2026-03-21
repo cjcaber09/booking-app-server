@@ -1,15 +1,20 @@
-# Hotel Booking System API
+# Booking App Server
 
 A RESTful API for managing hotel bookings built with Node.js, Express, TypeScript, and PostgreSQL.
 
+---
+
 ## Tech Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express
-- **Language**: TypeScript
-- **Database**: PostgreSQL
-- **Validation**: Joi
-- **Authentication**: JWT
+| | |
+|---|---|
+| **Runtime** | Node.js |
+| **Framework** | Express 5 |
+| **Language** | TypeScript |
+| **Database** | PostgreSQL (`pg`) |
+| **Validation** | Joi |
+| **Authentication** | JWT + Bcrypt |
+| **Dev Tools** | ts-node, nodemon |
 
 ---
 
@@ -19,13 +24,13 @@ A RESTful API for managing hotel bookings built with Node.js, Express, TypeScrip
 
 - Node.js v18+
 - PostgreSQL
-- npm or yarn
+- npm
 
 ### Installation
 
 ```bash
-git clone https://github.com/your-repo/hotel-booking-api
-cd hotel-booking-api
+git clone https://github.com/cjcaber09/booking-app-server.git
+cd booking-app-server
 npm install
 ```
 
@@ -35,105 +40,83 @@ Create a `.env` file in the root directory:
 
 ```env
 PORT=3000
-DATABASE_URL=postgresql://user:password@localhost:5432/hotel_db
+DATABASE_URL=postgresql://user:password@localhost:5432/booking_db
 JWT_SECRET=your_jwt_secret
 ```
 
-### Run the Server
+### Scripts
 
 ```bash
-# Development
-npm run dev
-
-# Production
-npm run build
-
-# Seeding
-npm run seed
-
-# Dropping Table
-npm run droptb
-# 
-npm start
+npm run dev        # Start development server with nodemon
+npm run build      # Compile TypeScript to dist/
+npm start          # Run compiled production server
+npm run seed       # Seed the database
+npm run dropdb     # Drop the database
+npm run watch      # Watch and recompile TypeScript
 ```
 
 ---
 
-## Database Schema
+## Project Structure
 
-### Users
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  role VARCHAR(20) DEFAULT 'guest',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
 ```
-
-### Rooms
-```sql
-CREATE TABLE rooms (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  price NUMERIC(10, 2) NOT NULL,
-  capacity INTEGER NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### Bookings
-```sql
-CREATE TABLE bookings (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
-  start_date TIMESTAMPTZ NOT NULL,
-  end_date TIMESTAMPTZ NOT NULL,
-  guests INTEGER NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending',
-  payment_method_id INTEGER REFERENCES payment_methods(id),
-  booked_by INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### Payment Methods
-```sql
-CREATE TABLE payment_methods (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  type VARCHAR(50) NOT NULL,
-  details JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+src/
+├── config/
+│   ├── migrations/       # Database migration files
+│   ├── db.ts             # PostgreSQL pool connection
+│   ├── dbdrop.ts         # Drop database script
+│   └── seed.ts           # Seed database script
+├── controller/
+│   ├── bookings.controller.ts
+│   ├── payment_methods.controller.ts
+│   ├── rooms.controller.ts
+│   └── users.controller.ts
+├── middleware/
+│   ├── admin.middleware.ts           # Admin role guard
+│   └── authentication.middleware.ts  # JWT auth guard
+├── models/
+│   ├── bookings.model.ts
+│   ├── payment_methods.models.ts
+│   ├── rooms.model.ts
+│   └── users.model.ts
+├── router/
+│   ├── bookings.routes.ts
+│   ├── payment_methods.routes.ts
+│   ├── rooms.routes.ts
+│   └── users.router.ts
+├── types/
+│   ├── bookings.types.ts
+│   ├── express.d.ts               # Express Request augmentation
+│   ├── payment_methods.types.ts
+│   ├── rooms.types.ts
+│   └── users.types.ts
+├── utils/
+│   ├── destructuring.ts
+│   └── utils.ts
+├── validation/
+│   ├── bookings.validation.ts
+│   ├── payment_methods.validation.ts
+│   ├── payments.validation.ts
+│   ├── rooms.validation.ts
+│   ├── user.middleware.ts
+│   └── users.validation.ts
+└── server.ts
 ```
 
 ---
 
 ## API Endpoints
 
-### Auth
+### Users
 
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
 | POST | `/api/v1/users/register` | Register a new user | Public |
-| POST | `/api/v1/users/login` | Login and get JWT token | Public |
-
-### Bookings
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/v1/bookings` | Get all bookings | Admin |
-| GET | `/api/v1/bookings/:id` | Get booking by ID | Auth |
-| POST | `/api/v1/bookings` | Create a booking | Auth |
-| PUT | `/api/v1/bookings/:id` | Update a booking | Auth |
-| DELETE | `/api/v1/bookings/:id` | Cancel a booking | Auth |
-| GET | `/api/v1/bookings/check` | Check room availability | Auth |
+| POST | `/api/v1/users/login` | Login and receive JWT | Public |
+| GET | `/api/v1/users` | Get all users | Admin |
+| GET | `/api/v1/users/:id` | Get user by ID | Auth |
+| PUT | `/api/v1/users/:id` | Update user | Auth |
+| DELETE | `/api/v1/users/:id` | Delete user | Admin |
 
 ### Rooms
 
@@ -145,6 +128,17 @@ CREATE TABLE payment_methods (
 | PUT | `/api/v1/rooms/:id` | Update a room | Admin |
 | DELETE | `/api/v1/rooms/:id` | Delete a room | Admin |
 
+### Bookings
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/v1/bookings` | Get all bookings | Admin |
+| GET | `/api/v1/bookings/:id` | Get booking by ID | Auth |
+| GET | `/api/v1/bookings/check` | Check room availability | Auth |
+| POST | `/api/v1/bookings` | Create a booking | Auth |
+| PUT | `/api/v1/bookings/:id` | Update a booking | Auth |
+| DELETE | `/api/v1/bookings/:id` | Cancel a booking | Auth |
+
 ### Payment Methods
 
 | Method | Endpoint | Description | Access |
@@ -152,56 +146,6 @@ CREATE TABLE payment_methods (
 | GET | `/api/v1/payment-methods` | Get user payment methods | Auth |
 | POST | `/api/v1/payment-methods` | Add a payment method | Auth |
 | DELETE | `/api/v1/payment-methods/:id` | Remove a payment method | Auth |
-
----
-
-## Request & Response Examples
-
-### Create Booking
-
-**POST** `/api/v1/bookings`
-
-Request body:
-```json
-{
-  "room_id": 1,
-  "start_date": "2026-07-12T12:00:00",
-  "end_date": "2026-07-13T12:00:00",
-  "guests": 2,
-  "payment_method_id": 1
-}
-```
-
-Response:
-```json
-{
-  "success": true,
-  "message": "Booking created successfully",
-  "data": {
-    "id": 1,
-    "user_id": 1,
-    "room_id": 1,
-    "start_date": "2026-07-12T12:00:00.000Z",
-    "end_date": "2026-07-13T12:00:00.000Z",
-    "guests": 2,
-    "status": "pending",
-    "booked_by": null,
-    "created_at": "2026-03-21T08:00:00.000Z"
-  }
-}
-```
-
-### Check Room Availability
-
-**GET** `/api/v1/bookings/check?room_id=1&start_date=2026-07-12T12:00:00&end_date=2026-07-13T12:00:00`
-
-Response:
-```json
-{
-  "success": true,
-  "message": "Room is available"
-}
-```
 
 ---
 
@@ -214,6 +158,7 @@ Authorization: Bearer <your_jwt_token>
 ```
 
 The JWT payload contains:
+
 ```json
 {
   "id": 1,
@@ -222,20 +167,29 @@ The JWT payload contains:
 }
 ```
 
+Tokens are verified by `authentication.middleware.ts` and the decoded payload is attached to `req.user`.
+
 ---
 
-## Roles
+## Roles & Middleware
+
+| Middleware | File | Purpose |
+|---|---|---|
+| `authMiddleware` | `authentication.middleware.ts` | Verifies JWT, attaches `req.user` |
+| `adminMiddleware` | `admin.middleware.ts` | Restricts route to `admin` role only |
 
 | Role | Permissions |
 |------|-------------|
 | `guest` | Create/view own bookings, manage own payment methods |
-| `admin` | Full access, book on behalf of guests, manage rooms |
+| `admin` | Full access, book on behalf of guests, manage rooms and users |
 
-Admins can book on behalf of guests — the `booked_by` field tracks which admin created the booking.
+Admins can create bookings on behalf of guests. The `booked_by` column in the bookings table tracks which admin made the booking.
 
 ---
 
 ## Validation
+
+All request bodies are validated using **Joi** before reaching the controller.
 
 Dates must be in **ISO 8601** format:
 
@@ -244,42 +198,56 @@ Dates must be in **ISO 8601** format:
 ✅ 2026-07-12T12:00:00.000Z
 ❌ July 12, 2026
 ❌ 07/12/2026
+❌ 07-12-2026 12:00pm
 ```
+
+Booking validation enforces:
+- `end_date` must be after `start_date`
+- `guests` must be a positive integer
+- `status` is restricted to `pending`, `confirmed`, or `cancelled`
+- Admins can set any status; guests are limited to `pending`
 
 ---
 
-## Project Structure
+## Room Availability Check
+
+**GET** `/api/v1/bookings/check`
+
+Query params:
+
+| Key | Example |
+|-----|---------|
+| `room_id` | `1` |
+| `start_date` | `2026-07-12T12:00:00` |
+| `end_date` | `2026-07-13T12:00:00` |
+
+Returns `409` if the room has a conflicting booking, `200` if available.
+
+---
+
+## Database
+
+Dates are stored as **`TIMESTAMPTZ`** (timestamp with time zone) to correctly handle guests across different timezones. All times are stored in UTC and localized on the frontend.
+
+### Key Tables
 
 ```
-src/
-├── controllers/
-│   ├── authController.ts
-│   ├── bookingController.ts
-│   ├── roomController.ts
-│   └── paymentMethodController.ts
-├── models/
-│   ├── userModel.ts
-│   ├── bookingModel.ts
-│   ├── roomModel.ts
-│   └── paymentMethodModel.ts
-├── middleware/
-│   ├── authMiddleware.ts
-│   └── validationMiddleware.ts
-├── routes/
-│   ├── authRoutes.ts
-│   ├── bookingRoutes.ts
-│   ├── roomRoutes.ts
-│   └── paymentMethodRoutes.ts
-├── types/
-│   ├── bookingTypes.ts
-│   ├── userTypes.ts
-│   └── express.d.ts
-├── validation/
-│   ├── bookingValidation.ts
-│   └── authValidation.ts
-├── config/
-│   └── db.ts
-└── index.ts
+users            - id, username, email, password, role
+rooms            - id, name, description, price, capacity
+bookings         - id, user_id, room_id, start_date, end_date, guests, status, booked_by, payment_method_id
+payment_methods  - id, user_id, type, details
+```
+
+Run migrations via the `config/migrations/` folder and seed initial data with:
+
+```bash
+npm run seed
+```
+
+To reset the database:
+
+```bash
+npm run dropdb
 ```
 
 ---
@@ -292,11 +260,11 @@ src/
 }
 ```
 
-| Status Code | Meaning |
-|-------------|---------|
-| 400 | Bad request / validation error |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not found |
-| 409 | Conflict (e.g. room already booked) |
+| Status | Meaning |
+|--------|---------|
+| 400 | Validation error |
+| 401 | Unauthorized — missing or invalid token |
+| 403 | Forbidden — insufficient role |
+| 404 | Resource not found |
+| 409 | Conflict — e.g. room already booked |
 | 500 | Internal server error |
