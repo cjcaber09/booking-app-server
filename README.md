@@ -47,6 +47,13 @@ npm run dev
 
 # Production
 npm run build
+
+# Seeding
+npm run seed
+
+# Dropping Table
+npm run droptb
+# 
 npm start
 ```
 
