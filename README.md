@@ -114,8 +114,8 @@ CREATE TABLE payment_methods (
 
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| POST | `/api/v1/auth/register` | Register a new user | Public |
-| POST | `/api/v1/auth/login` | Login and get JWT token | Public |
+| POST | `/api/v1/users/register` | Register a new user | Public |
+| POST | `/api/v1/users/login` | Login and get JWT token | Public |
 
 ### Bookings
 
