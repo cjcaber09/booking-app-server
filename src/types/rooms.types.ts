@@ -3,6 +3,7 @@ export interface RoomTypes {
   name: string;
   capacity: number;
   price: number;
+  user_id: number;
   description?: string;
   featuredImage?: string;
   amenities?: string[];
@@ -26,7 +27,9 @@ export type CreateRoomType = Omit<
   "id" | "created_at" | "updated_at"
 >;
 
-export type UpdateRoomType = Partial<CreateRoomType>;
+export type UpdateRoomType = Partial<
+  Omit<RoomTypes, "id" | "user_id" | "created_at" | "updated_at">
+>;
 
 export type RoomSuccessResponse = Omit<RoomTypes, "created_at" | "updated_at">;
 

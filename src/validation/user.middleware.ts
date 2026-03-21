@@ -1,7 +1,12 @@
 import { ObjectSchema } from "joi";
-import userValidation from "../validation/user.validation";
-import roomValidation from "../validation/room.validation";
+import userValidation from "./users.validation";
+import roomValidation from "./rooms.validation";
+import {
+  checkAvailabilityValidationSchema,
+  bookingsValidationSchema,
+} from "./bookings.validation";
 import { Request, Response, NextFunction } from "express";
+import paymentMethodsValidation from "./payment_methods.validation";
 
 const validate = (schema: ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -18,3 +23,10 @@ const validate = (schema: ObjectSchema) => {
 export const validateRegister = validate(userValidation.registerSchema);
 export const validateLogin = validate(userValidation.loginSchema);
 export const validateRoomSchema = validate(roomValidation.createRoomSchema);
+export const validatePaymentMethodSchema = validate(
+  paymentMethodsValidation.paymentMethodSchema,
+);
+export const validateBookingSchema = validate(bookingsValidationSchema);
+export const checkRoomAvailability = validate(
+  checkAvailabilityValidationSchema,
+);

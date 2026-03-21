@@ -18,13 +18,15 @@ export const createRoom = async (
   req: BodyRequest<CreateRoomType>,
   res: Response,
 ) => {
-  const stored = await CreateRoomModel(req.body);
+  const user_id = req.user?.id;
+  if (!user_id) return res.status(401).json({ message: "Unauthorized" });
+  const stored = await CreateRoomModel({ ...req.body, user_id });
   if ("error" in stored)
     return res
       .status(500)
       .json({ message: stored.error?.message || "Error creating room" });
   // TODO - Implement room creation logic
-  return res.status(200).json({
+  return res.status(201).json({
     message: stored,
   });
 };

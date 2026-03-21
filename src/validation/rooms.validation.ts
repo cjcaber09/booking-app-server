@@ -5,6 +5,7 @@ const createRoomSchema = joi.object({
   description: joi.string().max(500).optional(),
   price: joi.number().positive().required(),
   capacity: joi.number().integer().positive().required(),
+  featuredImage: joi.string().uri().optional(),
   amenities: joi
     .array()
     .items(

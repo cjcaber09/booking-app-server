@@ -1,5 +1,9 @@
 import pool from "../config/db";
-import { CreateRoomType, RoomIdParam } from "../types/rooms.types";
+import {
+  CreateRoomType,
+  RoomIdParam,
+  UpdateRoomType,
+} from "../types/rooms.types";
 import { Request, Response } from "express";
 export const CreateRoomModel = async (roomData: CreateRoomType) => {
   try {
@@ -11,6 +15,7 @@ export const CreateRoomModel = async (roomData: CreateRoomType) => {
       featuredImage,
       images,
       amenities,
+      user_id,
     } = roomData;
     const columns = [
       "name",
@@ -20,6 +25,7 @@ export const CreateRoomModel = async (roomData: CreateRoomType) => {
       featuredImage ? "featuredImage" : null,
       images ? "images" : null,
       amenities ? "amenities" : null,
+      "user_id",
     ];
     const values = [
       name,
@@ -27,8 +33,9 @@ export const CreateRoomModel = async (roomData: CreateRoomType) => {
       price,
       description,
       featuredImage ? featuredImage : null,
-      images ? JSON.stringify(images) : null,
-      amenities ? JSON.stringify(amenities) : null,
+      images ? JSON.stringify(images) : [],
+      amenities ? JSON.stringify(amenities) : [],
+      user_id,
     ];
     const query = `INSERT INTO rooms (${columns.join(", ")}) VALUES (${values.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING *`;
     const result = await pool.query(query, values);
@@ -62,10 +69,7 @@ export const getRoomByIdModel = async (id: number) => {
   }
 };
 
-export const updateRoomModel = async (
-  id: number,
-  room: Partial<CreateRoomType>,
-) => {
+export const updateRoomModel = async (id: number, room: UpdateRoomType) => {
   try {
     const jsonbFields = ["images", "amenities"];
 

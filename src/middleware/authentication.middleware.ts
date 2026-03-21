@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import pool from "../config/db";
+import { TokenPayload } from "../types/users.types";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 
@@ -15,16 +16,8 @@ export const authenticateToken = async (
   if (!token) return res.status(401).json({ message: "Access token missing" });
 
   try {
-    const decoded: any = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
-    // Fetch user from database
-    const result = await pool.query(
-      "SELECT id, email FROM users WHERE id = $1",
-      [userId],
-    );
-    if (result.rows.length === 0) {
-      return res.status(401).json({ message: "User not found" });
-    }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Attach decoded token to request for further use
     next();
   } catch (err) {
     return res.status(403).json({ message: "Invalid access token" });
